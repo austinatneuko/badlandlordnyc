@@ -44,6 +44,14 @@ export function PortfolioPage({ id }: { id: string }) {
         </div>
       )}
 
+      {p.kind === "owner" && p.buildings > 1 && (
+        <p className="note">
+          Grouping is approximate: it's built from names and business addresses on HPD registrations, which owners
+          fill in themselves. Compare with{" "}
+          <a href={`https://whoownswhat.justfix.org/bbl/${p.bbls[0]}`} target="_blank" rel="noreferrer">JustFix Who Owns What</a>.
+        </p>
+      )}
+
       <section className="facts" aria-label="Summary">
         <Fact n={p.buildings} label="Buildings" />
         <Fact n={p.units} label="Apartments" />
