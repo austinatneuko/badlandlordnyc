@@ -33,9 +33,14 @@ The site is static: every building report is a small JSON shard plus a live call
 
 Open HPD violations count 1 point (class A), 2 (class B) or 3 (class C, immediately hazardous). Points are divided by the number of apartments and ranked against every Brooklyn building with 3+ apartments. Portfolios are ranked the same way against Brooklyn owners with 2+ buildings.
 
-### Portfolios
+### Owner networks
 
-Many owners use one LLC per building. Buildings are linked when their HPD registrations share an owner-side person (head officer, individual or joint owner), a corporate owner name, or a business address. Addresses shared by more than 6 different owner names are not used as links, which keeps law offices and registration agents from merging unrelated owners.
+Many owners use one LLC per building. Buildings are linked when their HPD registrations share:
+
+- an owner-side person (head officer, officer, owner) at the same business address, so two different people with a common name stay apart
+- a company name at the same business address, including the managing agent's company
+
+This follows the approach of JustFix's Who Owns What, and `etl/verify.py` compares the two.
 
 ## Run it
 
