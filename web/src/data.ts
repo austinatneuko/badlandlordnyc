@@ -84,6 +84,14 @@ function load<T>(path: string): Promise<T> {
 
 export const loadMeta = () => load<Meta>("meta.json")
 export const loadMap = () => load<MapPoint[]>("map.json")
+export interface Zones {
+  lon0: number
+  lat0: number
+  dlon: number
+  dlat: number
+  cells: [x: number, y: number, pct: number, units: number, buildings: number, worst: number][]
+}
+export const loadZones = () => load<Zones>("zones.json")
 export const loadNames = () => load<NameEntry[]>("names.json")
 
 export async function loadBuilding(bbl: string): Promise<Building | null> {

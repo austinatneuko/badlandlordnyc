@@ -4,6 +4,7 @@ import { MapView } from "./MapView"
 import { BuildingReport } from "./BuildingReport"
 import { PortfolioPage } from "./PortfolioPage"
 import { loadMeta, type Meta } from "./data"
+import { Accordion, AccordionHeader, AccordionItem, AccordionPanel, AccordionTrigger } from "@ui-sdk/react/accordion"
 
 type Route = { page: "home" } | { page: "building"; bbl: string } | { page: "portfolio"; id: string }
 
@@ -54,7 +55,6 @@ export default function App() {
             )}
           </section>
           <MapView />
-          <Legend />
           <Method />
         </main>
       )}
@@ -70,32 +70,50 @@ export default function App() {
   )
 }
 
-function Legend() {
-  return (
-    <ul className="legend" aria-label="Map legend">
-      <li><span className="dot" data-tier="worst" /> Worst 5% in Brooklyn</li>
-      <li><span className="dot" data-tier="bad" /> Worst 10%</li>
-      <li><span className="dot" data-tier="poor" /> Worse than most</li>
-      <li><span className="dot" data-tier="fair" /> Some open violations</li>
-      <li><span className="dot" data-tier="low" /> Past records, nothing open</li>
-    </ul>
-  )
-}
+const METHOD = [
+  {
+    value: "zones",
+    label: "How the map is shaded",
+    body: [
+      "Brooklyn is cut into squares about three or four blocks wide. Each square adds up the open HPD violations in every building with 3 or more apartments inside it, clean buildings included, and divides by the number of apartments.",
+      "Squares are then ranked against each other. Red means more open problems per apartment than almost anywhere else in Brooklyn. Green means few or none. Zoom in to see the buildings themselves.",
+    ],
+  },
+  {
+    value: "ranking",
+    label: "How buildings are ranked",
+    body: [
+      "Every open HPD violation counts 1 point for class A (non-hazardous), 2 for class B (hazardous) and 3 for class C (immediately hazardous, like no heat or lead paint). Points are divided by the number of apartments, then compared against every Brooklyn building with 3 or more apartments.",
+      "\"Worst 5%\" means the building has more open problems per apartment than 95% of them.",
+    ],
+  },
+  {
+    value: "owners",
+    label: "How owners are grouped",
+    body: [
+      "Many landlords use a separate LLC for each building. We group buildings when HPD registrations share an owner's name or a company name at the same business address. It's approximate, so check JustFix Who Owns What for a second opinion.",
+    ],
+  },
+]
 
 function Method() {
   return (
     <section className="method">
-      <h2>How the ranking works</h2>
-      <p>
-        Every open HPD violation counts 1 point for class A (non-hazardous), 2 for class B (hazardous) and 3 for
-        class C (immediately hazardous, like no heat or lead paint). Points are divided by the number of
-        apartments, then compared against every Brooklyn building with 3 or more apartments. "Worst 5%" means
-        the building has more open problems per apartment than 95% of them.
-      </p>
-      <p>
-        Owners are grouped into portfolios by matching the names and business addresses listed in HPD
-        registrations, since many landlords use a separate LLC for each building.
-      </p>
+      <h2>How this works</h2>
+      <Accordion className="acc" defaultValue={["zones"]}>
+        {METHOD.map((m) => (
+          <AccordionItem key={m.value} value={m.value} className="acc-item">
+            <AccordionHeader className="acc-h">
+              <AccordionTrigger className="acc-trigger">
+                {m.label}
+              </AccordionTrigger>
+            </AccordionHeader>
+            <AccordionPanel className="acc-panel">
+              {m.body.map((b) => <p key={b}>{b}</p>)}
+            </AccordionPanel>
+          </AccordionItem>
+        ))}
+      </Accordion>
     </section>
   )
 }

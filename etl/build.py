@@ -316,6 +316,27 @@ for b in has_record:
         points.append([round(d["lon"], 5), round(d["lat"], 5), b, d.get("pct", 0), d["units"]])
 dump(OUT / "map.json", points)
 
+# Zones: a square grid over Brooklyn, each cell shaded by open-violation points per
+# apartment across every 3+ unit building in it (clean buildings count too).
+# Cells are about 380m on a side, roughly three or four city blocks.
+ZONE_DLAT, ZONE_DLON, ZONE_LAT0, ZONE_LON0 = 0.0034, 0.0045, 40.55, -74.06
+cells = defaultdict(lambda: [0.0, 0, 0, 0])  # points, units, buildings, worst-5% buildings
+for b in pluto.index[units >= 3]:
+    p = pluto.loc[b]
+    if not p.latitude or not p.longitude:
+        continue
+    k = (int((float(p.longitude) - ZONE_LON0) / ZONE_DLON), int((float(p.latitude) - ZONE_LAT0) / ZONE_DLAT))
+    c = cells[k]
+    d = B.get(b, {})
+    c[0] += d.get("points", 0)
+    c[1] += int(units[b])
+    c[2] += 1
+    c[3] += d.get("pct", 0) >= 95
+zs = pd.Series({k: c[0] / c[1] for k, c in cells.items() if c[1] >= 30})
+zr = zs.rank(pct=True, method="max")
+zones = [[k[0], k[1], round(float(zr[k]) * 100, 1) if zs[k] > 0 else 0, cells[k][1], cells[k][2], cells[k][3]] for k in zs.index]
+dump(OUT / "zones.json", {"lon0": ZONE_LON0, "lat0": ZONE_LAT0, "dlon": ZONE_DLON, "dlat": ZONE_DLAT, "cells": zones})
+
 names = []
 for pid, p in portfolios.items():
     if p["kind"] == "manager":

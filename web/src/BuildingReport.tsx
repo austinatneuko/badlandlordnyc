@@ -9,6 +9,10 @@ import {
   type Portfolio,
 } from "./data"
 
+import { Meter, MeterIndicator, MeterLabel, MeterTrack, MeterValue } from "@ui-sdk/react/meter"
+import { Timeline, TimelineConnector, TimelineDescription, TimelineItem, TimelineMarker, TimelineTime, TimelineTitle } from "@ui-sdk/react/timeline"
+import { Button } from "@ui-sdk/react/button"
+
 const BORO: Record<string, string> = { "1": "Manhattan", "2": "Bronx", "3": "Brooklyn", "4": "Queens", "5": "Staten Island" }
 
 export function BuildingReport({ bbl }: { bbl: string }) {
@@ -150,16 +154,24 @@ function SeverityBar({ open }: { open: Building["open"] & object }) {
   return (
     <div className="sev">
       {rows.map((r) => (
-        <div key={r.k} className="sev-row" data-class={r.k}>
-          <div className="sev-label">
+        <Meter
+          key={r.k}
+          className="sev-row"
+          data-class={r.k}
+          value={open[r.k] ?? 0}
+          max={max}
+          format={(n: number) => String(n)}
+          getValueLabel={(n: number) => `${n} open`}
+        >
+          <MeterLabel className="sev-label">
             <span>{r.label}</span>
             <small>{r.hint}</small>
-          </div>
-          <div className="sev-track">
-            <div className="sev-fill" style={{ width: `${((open[r.k] ?? 0) / max) * 100}%` }} />
-          </div>
-          <span className="sev-n">{open[r.k] ?? 0}</span>
-        </div>
+          </MeterLabel>
+          <MeterValue className="sev-n" />
+          <MeterTrack className="sev-track">
+            <MeterIndicator className="sev-fill" />
+          </MeterTrack>
+        </Meter>
       ))}
     </div>
   )
@@ -198,24 +210,27 @@ function LiveList({ bbl }: { bbl: string }) {
       {!rows && !err && <p className="loading">Loading…</p>}
       {rows && rows.length === 0 && <p className="note">No violations on file.</p>}
       {rows && rows.length > 0 && (
-        <ol className="timeline">
+        <Timeline className="timeline" aria-label="HPD violations, newest first">
           {(all ? rows : rows.slice(0, 10)).map((v) => (
-            <li key={v.violationid} data-class={v.class} data-open={v.violationstatus === "Open" || undefined}>
-              <div className="tl-head">
-                <span className="tl-class">{v.class}</span>
-                <time>{v.inspectiondate?.slice(0, 10)}</time>
-                {v.apartment && <span>Apt {v.apartment}</span>}
+            <TimelineItem key={v.violationid} className="tl-item" data-class={v.class} data-open={v.violationstatus === "Open" || undefined}>
+              <TimelineMarker className="tl-marker">{v.class}</TimelineMarker>
+              <TimelineConnector className="tl-line" />
+              <TimelineTitle className="tl-head">
+                <span>Class {v.class}{v.apartment ? ` · Apt ${v.apartment}` : ""}</span>
                 <span className="tl-status">{v.violationstatus === "Open" ? "Open" : "Closed"}</span>
-              </div>
-              <p>{shorten(v.novdescription)}</p>
-            </li>
+              </TimelineTitle>
+              <TimelineTime className="tl-time" dateTime={v.inspectiondate?.slice(0, 10)}>
+                {v.inspectiondate ? new Date(v.inspectiondate).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : ""}
+              </TimelineTime>
+              <TimelineDescription className="tl-desc">{shorten(v.novdescription)}</TimelineDescription>
+            </TimelineItem>
           ))}
-        </ol>
+        </Timeline>
       )}
       {rows && rows.length > 10 && !all && (
-        <button type="button" className="more" onClick={() => setAll(true)}>
+        <Button className="btn" onClick={() => setAll(true)}>
           Show {rows.length - 10} more
-        </button>
+        </Button>
       )}
     </section>
   )
